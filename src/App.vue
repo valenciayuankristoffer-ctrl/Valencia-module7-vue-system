@@ -174,22 +174,33 @@ const filteredStudents = computed(() => {
       </div>
 
       <!-- SEARCH -->
-      <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+<div class="bg-white rounded-xl shadow-md p-6 mb-8">
 
-        <label
-          class="block text-sm font-semibold text-gray-700 mb-2"
-        >
-          Search Students
-        </label>
+  <div class="flex justify-between items-center mb-2">
 
-        <input
-        v-model="searchTerm"
-        type="text"
-        placeholder="Search Student ID, Name, or Course/Section"
-        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+    <label class="block text-sm font-semibold text-gray-700">
+      Search Students
+    </label>
 
-      </div>
+    <button
+      v-if="searchTerm"
+      @click="searchTerm = ''"
+      type="button"
+      class="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+    >
+      Clear Search
+    </button>
+
+  </div>
+
+  <input
+    v-model="searchTerm"
+    type="text"
+    placeholder="Search Student ID, Name, or Course/Section"
+    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+
+</div>
 
       <!-- STUDENT LIST -->
       <StudentList
