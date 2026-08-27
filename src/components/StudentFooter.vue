@@ -7,7 +7,7 @@
       </p>
 
       <p class="text-gray-400 text-sm mt-1">
-        BSCS 3B | Yuan Kristoffer Valencia
+        BSCS 3B | YUAN KRISTOFFER VALENCIA
       </p>
 
       <p class="text-gray-500 text-xs mt-2">
