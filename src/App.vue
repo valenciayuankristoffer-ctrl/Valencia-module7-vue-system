@@ -183,10 +183,10 @@ const filteredStudents = computed(() => {
         </label>
 
         <input
-          v-model="searchTerm"
-          type="text"
-          placeholder="Search by Student ID, Name, or Course/Section"
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        v-model="searchTerm"
+        type="text"
+        placeholder="Search Student ID, Name, or Course/Section"
+        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
       </div>
