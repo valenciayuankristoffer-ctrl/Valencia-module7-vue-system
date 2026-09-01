@@ -44,8 +44,16 @@ Pass
 Evidence:
 03-failed-test-or-defect.png
 
-Status:
-Fixed
+Status: Fixed
+
+Fix Description:
+Updated StudentForm.vue to validate Student IDs as exactly 8 digits and Full Names as letters and spaces only.
+
+Retest Result: 
+Pass
+
+Retest Evidence: 
+03-retest-fixed-validation.png
 
 
 
