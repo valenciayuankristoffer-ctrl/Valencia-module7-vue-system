@@ -59,14 +59,26 @@ function submitForm() {
   }
 
   // Student ID validation
-  if (id.length < 3) {
+  // Must contain exactly 8 numbers.
+  // Example: 64172020
+  if (!/^\d{8}$/.test(id)) {
     errorMessage.value =
-      'Student ID must contain at least 3 characters.'
+      'Student ID must contain exactly 8 numbers. Example: 64172020.'
 
     return
   }
 
-  // Full name validation
+  // Full Name validation
+  // Allows letters and spaces only.
+  // Example: Juan Dela Cruz
+  if (!/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/.test(name)) {
+    errorMessage.value =
+      'Full Name must contain letters and spaces only.'
+
+    return
+  }
+
+  // Full Name minimum length
   if (name.length < 2) {
     errorMessage.value =
       'Please enter a valid full name.'
@@ -152,13 +164,16 @@ function cancelEdit() {
           id="studentId"
           v-model="studentId"
           type="text"
+          inputmode="numeric"
+          maxlength="8"
+          pattern="[0-9]{8}"
           required
-          placeholder="Example: 2026-001"
+          placeholder="Example: 64172020"
           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
 
         <p class="text-xs text-gray-500 mt-1">
-          Enter the student's identification number.
+          Student ID must contain exactly 8 numbers.
         </p>
       </div>
 
@@ -182,7 +197,7 @@ function cancelEdit() {
         />
 
         <p class="text-xs text-gray-500 mt-1">
-          Enter the student's complete name.
+          Enter the student's complete name using letters only.
         </p>
       </div>
 
@@ -201,7 +216,7 @@ function cancelEdit() {
           v-model="courseSection"
           type="text"
           required
-          placeholder="Example: BSCS 3A"
+          placeholder="Example: BSCS-3B"
           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
 
@@ -211,9 +226,7 @@ function cancelEdit() {
       </div>
 
       <!-- Buttons -->
-      <div
-        class="flex flex-col sm:flex-row gap-3 pt-2"
-      >
+      <div class="flex flex-col sm:flex-row gap-3 pt-2">
 
         <!-- Add / Update Button -->
         <button
