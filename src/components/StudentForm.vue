@@ -10,261 +10,171 @@ const props = defineProps({
 
 const emit = defineEmits(['save', 'cancel'])
 
-const studentId = ref('')
-const fullName = ref('')
-const courseSection = ref('')
+const form = ref({
+  id: null,
+  studentId: '',
+  fullName: '',
+  courseSection: '',
+  status: 'Active'
+})
+
 const errorMessage = ref('')
 
-/*
-  Watch for changes when editing a student.
-  If a student is selected, put their information
-  into the form.
-*/
+// Populate form when editing
 watch(
   () => props.editingStudent,
-  (student) => {
-    if (student) {
-      studentId.value = student.studentId || ''
-      fullName.value = student.fullName || ''
-      courseSection.value = student.courseSection || ''
-      errorMessage.value = ''
+  (newVal) => {
+    if (newVal) {
+      form.value = { 
+        ...newVal, 
+        status: newVal.status || 'Active' 
+      }
     } else {
-      clearForm()
+      resetForm()
     }
   },
-  {
-    immediate: true
-  }
+  { immediate: true }
 )
 
-/*
-  Submit the form.
-  This function is used for both:
-  - Adding a new student
-  - Updating an existing student
-*/
-function submitForm() {
+function handleSubmit() {
   errorMessage.value = ''
 
-  const id = studentId.value.trim()
-  const name = fullName.value.trim()
-  const course = courseSection.value.trim()
-
-  // Check if fields are empty
-  if (!id || !name || !course) {
-    errorMessage.value =
-      'Please complete all required fields before submitting.'
-
+  // 1. Check empty fields
+  if (!form.value.studentId.trim() || !form.value.fullName.trim() || !form.value.courseSection.trim()) {
+    errorMessage.value = 'Please fill out all fields.'
     return
   }
 
-  // Student ID validation
-  // Must contain exactly 8 numbers.
-  // Example: 64172020
-  if (!/^\d{8}$/.test(id)) {
-    errorMessage.value =
-      'Student ID must contain exactly 8 numbers. Example: 64172020.'
-
+  // 2. Validate Student ID (Numbers only)
+  const studentIdRegex = /^[0-9]+$/
+  if (!studentIdRegex.test(form.value.studentId.trim())) {
+    errorMessage.value = 'Student ID must contain numbers only.'
     return
   }
 
-  // Full Name validation
-  // Allows letters and spaces only.
-  // Example: Juan Dela Cruz
-  if (!/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/.test(name)) {
-    errorMessage.value =
-      'Full Name must contain letters and spaces only.'
-
+  // 3. Validate Full Name (Letters and spaces only)
+  const nameRegex = /^[a-zA-Z\s]+$/
+  if (!nameRegex.test(form.value.fullName.trim())) {
+    errorMessage.value = 'Full Name must contain letters only.'
     return
   }
 
-  // Full Name minimum length
-  if (name.length < 2) {
-    errorMessage.value =
-      'Please enter a valid full name.'
-
-    return
-  }
-
-  // Send student information to App.vue
+  // Emit data to App.vue
   emit('save', {
-    id: props.editingStudent?.id || null,
-    studentId: id,
-    fullName: name,
-    courseSection: course
+    studentId: form.value.studentId.trim(),
+    fullName: form.value.fullName.trim(),
+    courseSection: form.value.courseSection.trim(),
+    status: form.value.status || 'Active'
   })
 
-  // Clear the form after saving
-  clearForm()
+  resetForm()
 }
 
-/*
-  Clear all form fields.
-*/
-function clearForm() {
-  studentId.value = ''
-  fullName.value = ''
-  courseSection.value = ''
-  errorMessage.value = ''
-}
-
-/*
-  Cancel editing.
-*/
-function cancelEdit() {
-  clearForm()
+function handleCancel() {
+  resetForm()
   emit('cancel')
+}
+
+function resetForm() {
+  form.value = {
+    id: null,
+    studentId: '',
+    fullName: '',
+    courseSection: '',
+    status: 'Active'
+  }
+  errorMessage.value = ''
 }
 </script>
 
 <template>
   <div class="bg-white rounded-xl shadow-md p-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">
+      {{ form.id ? 'Edit Student Record' : 'Add New Student' }}
+    </h3>
 
-    <!-- Form Title -->
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">
-        {{ editingStudent ? 'Edit Student' : 'Add Student' }}
-      </h2>
-
-      <p class="text-gray-500 text-sm mt-1">
-        {{
-          editingStudent
-            ? 'Update the student information below.'
-            : 'Enter the student information below.'
-        }}
-      </p>
-    </div>
-
-    <!-- Error Message -->
-    <div
-      v-if="errorMessage"
-      class="mb-5 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg"
+    <!-- Error Alert -->
+    <div 
+      v-if="errorMessage" 
+      class="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded-lg"
     >
-      <strong>Error:</strong>
       {{ errorMessage }}
     </div>
 
-    <!-- Student Form -->
-    <form
-      @submit.prevent="submitForm"
-      class="space-y-5"
-    >
-
-      <!-- Student ID -->
+    <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Student ID (Numbers only pattern) -->
       <div>
-        <label
-          for="studentId"
-          class="block text-sm font-semibold text-gray-700 mb-2"
-        >
+        <label class="block text-sm font-semibold text-gray-700 mb-1">
           Student ID
-          <span class="text-red-500">*</span>
         </label>
-
         <input
-          id="studentId"
-          v-model="studentId"
+          v-model="form.studentId"
           type="text"
-          inputmode="numeric"
-          maxlength="8"
-          pattern="[0-9]{8}"
-          required
-          placeholder="Example: 64172020"
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="e.g. 64172024"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         />
-
-        <p class="text-xs text-gray-500 mt-1">
-          Student ID must contain exactly 8 numbers.
-        </p>
       </div>
 
-      <!-- Full Name -->
+      <!-- Full Name (Letters only pattern) -->
       <div>
-        <label
-          for="fullName"
-          class="block text-sm font-semibold text-gray-700 mb-2"
-        >
+        <label class="block text-sm font-semibold text-gray-700 mb-1">
           Full Name
-          <span class="text-red-500">*</span>
         </label>
-
         <input
-          id="fullName"
-          v-model="fullName"
+          v-model="form.fullName"
           type="text"
-          required
-          placeholder="Example: Juan Dela Cruz"
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="e.g. Juan Dela Cruz"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         />
-
-        <p class="text-xs text-gray-500 mt-1">
-          Enter the student's complete name using letters only.
-        </p>
       </div>
 
       <!-- Course / Section -->
       <div>
-        <label
-          for="courseSection"
-          class="block text-sm font-semibold text-gray-700 mb-2"
-        >
+        <label class="block text-sm font-semibold text-gray-700 mb-1">
           Course / Section
-          <span class="text-red-500">*</span>
         </label>
-
         <input
-          id="courseSection"
-          v-model="courseSection"
+          v-model="form.courseSection"
           type="text"
-          required
-          placeholder="Example: BSCS-3B"
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="e.g. BSCS-3B"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         />
-
-        <p class="text-xs text-gray-500 mt-1">
-          Enter the student's course and section.
-        </p>
       </div>
 
-      <!-- Buttons -->
-      <div class="flex flex-col sm:flex-row gap-3 pt-2">
-
-        <!-- Add / Update Button -->
-        <button
-          type="submit"
-          class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+      <!-- Status Selection -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">
+          Status
+        </label>
+        <select
+          v-model="form.status"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         >
-          {{ editingStudent ? 'Update Student' : 'Add Student' }}
-        </button>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
 
-        <!-- Clear Button -->
+      <!-- Form Buttons -->
+      <div class="md:col-span-2 lg:col-span-4 flex justify-end gap-3 mt-2">
         <button
-          v-if="!editingStudent"
+          v-if="form.id"
           type="button"
-          @click="clearForm"
-          class="bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition"
-        >
-          Clear Form
-        </button>
-
-        <!-- Cancel Button -->
-        <button
-          v-if="editingStudent"
-          type="button"
-          @click="cancelEdit"
-          class="bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition"
+          @click="handleCancel"
+          class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
         >
           Cancel
         </button>
 
+        <button
+          type="submit"
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+        >
+          {{ form.id ? 'Update Student' : 'Add Student' }}
+        </button>
       </div>
 
-      <!-- Required Fields Note -->
-      <p class="text-xs text-gray-500">
-        <span class="text-red-500">*</span>
-        Required fields
-      </p>
-
     </form>
-
   </div>
 </template>

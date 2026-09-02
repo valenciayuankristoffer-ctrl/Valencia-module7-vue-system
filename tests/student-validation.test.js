@@ -26,9 +26,10 @@ describe('Full Name Validation', () => {
   it('should reject numbers as a full name', () => {
     expect(isValidFullName('12345')).toBe(false)
   })
+
+  // ADD THE 5TH TEST HERE
+  it('should reject empty required fields', () => {
+    expect(isValidStudentId('')).toBe(false)
+    expect(isValidFullName('')).toBe(false)
+  })
 })
-
-
-
-
-

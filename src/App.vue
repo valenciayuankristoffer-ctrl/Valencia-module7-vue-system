@@ -23,7 +23,17 @@ onMounted(() => {
   const savedStudents = localStorage.getItem('module7-students')
 
   if (savedStudents) {
-    students.value = JSON.parse(savedStudents)
+    try {
+      const parsed = JSON.parse(savedStudents)
+      // Ensure all loaded students have a default status if missing
+      students.value = parsed.map(student => ({
+        ...student,
+        status: student.status || 'Active'
+      }))
+    } catch (e) {
+      console.error('Error parsing stored student data:', e)
+      students.value = []
+    }
   }
 })
 
@@ -46,12 +56,14 @@ function saveStudent(student) {
     if (index !== -1) {
       students.value[index] = {
         ...students.value[index],
-        ...student
+        studentId: student.studentId,
+        fullName: student.fullName,
+        courseSection: student.courseSection,
+        status: student.status || students.value[index].status || 'Active'
       }
     }
 
     successMessage.value = 'Student successfully updated.'
-
     editingStudent.value = null
   }
 
@@ -61,7 +73,8 @@ function saveStudent(student) {
       id: Date.now(),
       studentId: student.studentId,
       fullName: student.fullName,
-      courseSection: student.courseSection
+      courseSection: student.courseSection,
+      status: student.status || 'Active'
     })
 
     successMessage.value = 'Student successfully added.'
@@ -73,6 +86,25 @@ function saveStudent(student) {
   setTimeout(() => {
     successMessage.value = ''
   }, 3000)
+}
+
+// TOGGLE STUDENT STATUS (Active <-> Inactive)
+function toggleStatus(studentToToggle) {
+  const index = students.value.findIndex(item => item.id === studentToToggle.id)
+
+  if (index !== -1) {
+    const currentStatus = (students.value[index].status || 'Active').toLowerCase()
+    const newStatus = currentStatus === 'active' ? 'Inactive' : 'Active'
+    
+    students.value[index].status = newStatus
+    saveStudents()
+
+    successMessage.value = `Student status changed to ${newStatus}.`
+
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
+  }
 }
 
 // EDIT STUDENT
@@ -114,20 +146,18 @@ function deleteStudent(id) {
   }, 3000)
 }
 
-// SEARCH
+// SEARCH FILTERING
 const filteredStudents = computed(() => {
-  const keyword = searchTerm.value
-    .toLowerCase()
-    .trim()
+  const keyword = searchTerm.value.toLowerCase().trim()
 
   if (!keyword) {
     return students.value
   }
 
   return students.value.filter(student =>
-    student.studentId.toLowerCase().includes(keyword) ||
-    student.fullName.toLowerCase().includes(keyword) ||
-    student.courseSection.toLowerCase().includes(keyword)
+    (student.studentId && student.studentId.toLowerCase().includes(keyword)) ||
+    (student.fullName && student.fullName.toLowerCase().includes(keyword)) ||
+    (student.courseSection && student.courseSection.toLowerCase().includes(keyword))
   )
 })
 </script>
@@ -174,39 +204,40 @@ const filteredStudents = computed(() => {
       </div>
 
       <!-- SEARCH -->
-<div class="bg-white rounded-xl shadow-md p-6 mb-8">
+      <div class="bg-white rounded-xl shadow-md p-6 mb-8">
 
-  <div class="flex justify-between items-center mb-2">
+        <div class="flex justify-between items-center mb-2">
 
-    <label class="block text-sm font-semibold text-gray-700">
-      Search Students
-    </label>
+          <label class="block text-sm font-semibold text-gray-700">
+            Search Students
+          </label>
 
-    <button
-      v-if="searchTerm"
-      @click="searchTerm = ''"
-      type="button"
-      class="text-sm text-blue-600 hover:text-blue-800 font-semibold"
-    >
-      Clear Search
-    </button>
+          <button
+            v-if="searchTerm"
+            @click="searchTerm = ''"
+            type="button"
+            class="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Clear Search
+          </button>
 
-  </div>
+        </div>
 
-  <input
-    v-model="searchTerm"
-    type="text"
-    placeholder="Search Student ID, Name, or Course/Section"
-    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-  />
+        <input
+          v-model="searchTerm"
+          type="text"
+          placeholder="Search Student ID, Name, or Course/Section"
+          class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-</div>
+      </div>
 
       <!-- STUDENT LIST -->
       <StudentList
         :students="filteredStudents"
         @edit="editStudent"
         @delete="deleteStudent"
+        @toggle-status="toggleStatus"
       />
 
     </div>
